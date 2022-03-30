@@ -35,14 +35,14 @@ def main(args):
     output_file(filename=f"{args.output_dir}/weather_plots.html",
                 title="Weather data")
     source = ColumnDataSource(weather_data)
-    tools = "pan, wheel_zoom, xbox_select, reset"
+    tools = "pan, wheel_zoom, box_select, reset"
 
     # create plots
     s1 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
                 sizing_mode="stretch_width", width=PLOT_WIDTH, x_axis_type="datetime")
     s1.toolbar.active_scroll = s1.select_one(WheelZoomTool)
     s1.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
-            source=source, color=palette[0], alpha=0.2, legend_label="min/max")
+            source=source, color=palette[0], alpha=0.5, legend_label="min/max")
 
     s2 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
                 width=PLOT_WIDTH, x_axis_type="datetime", x_range=s1.x_range)
