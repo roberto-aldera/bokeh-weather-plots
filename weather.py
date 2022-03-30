@@ -66,9 +66,11 @@ if __name__ == "__main__":
         raise ValueError(
             f"Invalid start year: {args.start_year} - this must be between 1815 and 2020.")
 
-    if args.start_year + args.num_years > 2020:
-        raise ValueError(
+    if args.start_year + (args.num_years-1) > 2020:
+        print(
             f"The requested start year ({args.start_year}) plus the entered "
-            f"number of years ({args.num_years}) exceeds the latest available data from the end of 2020.")
+            f"number of years ({args.num_years}) exceeds the latest available data from the end of 2020. "
+            "Truncating to the end of 2020.")
+        args.num_years = 2020 - args.start_year + 1
 
     main(args)
