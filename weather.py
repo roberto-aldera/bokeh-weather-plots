@@ -1,6 +1,6 @@
 import pandas as pd
 from argparse import ArgumentParser
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, WheelZoomTool
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category10_10 as palette
@@ -35,15 +35,18 @@ def main(args):
     output_file(filename=f"{args.output_dir}/weather_plots.html",
                 title="Weather data")
     source = ColumnDataSource(weather_data)
+    tools = "pan, wheel_zoom, xbox_select, reset"
 
     # create plots
-    s1 = figure(background_fill_color=BACKGROUND_COLOUR,
+    s1 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
                 sizing_mode="stretch_width", width=PLOT_WIDTH, x_axis_type="datetime")
+    s1.toolbar.active_scroll = s1.select_one(WheelZoomTool)
     s1.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
             source=source, color=palette[0], alpha=0.2, legend_label="min/max")
 
-    s2 = figure(background_fill_color=BACKGROUND_COLOUR,
-                width=PLOT_WIDTH, x_axis_type="datetime")
+    s2 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                width=PLOT_WIDTH, x_axis_type="datetime", x_range=s1.x_range)
+    s2.toolbar.active_scroll = s2.select_one(WheelZoomTool)
     s2.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[1],
               size=5, alpha=0.8, legend_label="Mean temperature")
 
