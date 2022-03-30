@@ -42,8 +42,9 @@ def main(args):
     s1.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
             source=source, color=palette[0], alpha=0.2, legend_label="min/max")
 
-    s2 = figure(background_fill_color=BACKGROUND_COLOUR, width=PLOT_WIDTH)
-    s2.circle(x="index", y="Daily Tmean °C", source=source, color=palette[1],
+    s2 = figure(background_fill_color=BACKGROUND_COLOUR,
+                width=PLOT_WIDTH, x_axis_type="datetime")
+    s2.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[1],
               size=5, alpha=0.8, legend_label="Mean temperature")
 
     # make a grid and save to file
