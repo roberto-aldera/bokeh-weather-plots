@@ -6,6 +6,7 @@ from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category10_10 as palette
 
 PLOT_WIDTH = 1200
+PLOT_HEIGHT = 300
 BACKGROUND_COLOUR = "#fafafa"
 
 
@@ -38,20 +39,41 @@ def main(args):
     tools = "pan, wheel_zoom, box_select, reset"
 
     # create plots
-    s1 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
-                sizing_mode="stretch_width", width=PLOT_WIDTH, x_axis_type="datetime")
-    s1.toolbar.active_scroll = s1.select_one(WheelZoomTool)
-    s1.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
-            source=source, color=palette[0], alpha=0.5, legend_label="min/max")
+    temp_range_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                             sizing_mode="stretch_width", width=PLOT_WIDTH, height=PLOT_HEIGHT,
+                             x_axis_type="datetime")
+    temp_range_plot.toolbar.active_scroll = temp_range_plot.select_one(
+        WheelZoomTool)
+    temp_range_plot.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
+                         source=source, color=palette[0], alpha=0.5, legend_label="Temperature range")
 
-    s2 = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
-                width=PLOT_WIDTH, x_axis_type="datetime", x_range=s1.x_range)
-    s2.toolbar.active_scroll = s2.select_one(WheelZoomTool)
-    s2.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[1],
-              size=5, alpha=0.8, legend_label="Mean temperature")
+    mean_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                            width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
+                            x_range=temp_range_plot.x_range)
+    mean_temp_plot.toolbar.active_scroll = mean_temp_plot.select_one(
+        WheelZoomTool)
+    mean_temp_plot.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[1],
+                          size=5, alpha=0.8, legend_label="Mean temperature")
+
+    min_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                           width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
+                           x_range=temp_range_plot.x_range)
+    min_temp_plot.toolbar.active_scroll = min_temp_plot.select_one(
+        WheelZoomTool)
+    min_temp_plot.circle(x="datetime", y="Tmin °C", source=source, color=palette[2],
+                         size=5, alpha=0.8, legend_label="Min temperature")
+
+    max_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                           width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
+                           x_range=temp_range_plot.x_range)
+    max_temp_plot.toolbar.active_scroll = max_temp_plot.select_one(
+        WheelZoomTool)
+    max_temp_plot.circle(x="datetime", y="Tmax °C", source=source, color=palette[3],
+                         size=5, alpha=0.8, legend_label="Max temperature")
 
     # make a grid and save to file
-    grid_plot = gridplot([[s1], [s2]])
+    grid_plot = gridplot([[temp_range_plot], [mean_temp_plot], [
+                         min_temp_plot], [max_temp_plot]])
     save(grid_plot)
 
 
