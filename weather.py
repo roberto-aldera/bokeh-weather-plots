@@ -10,10 +10,7 @@ PLOT_HEIGHT = 300
 BACKGROUND_COLOUR = "#fafafa"
 
 
-def main(args):
-    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
-    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
-
+def prepare_weather_dataframe(weather_data_raw: pd.DataFrame) -> pd.DataFrame:
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
 
@@ -31,10 +28,14 @@ def main(args):
     weather_data["left"] = weather_data["datetime"] - pd.DateOffset(days=0.5)
     weather_data["right"] = weather_data["datetime"] + pd.DateOffset(days=0.5)
 
-    print("Running...")
+    return weather_data
+
+
+def make_bokeh_plots(weather_data, args):
     # set output to static HTML file
     output_file(filename=f"{args.output_dir}/weather_plots.html",
                 title="Weather data")
+
     source = ColumnDataSource(weather_data)
     tools = "pan, wheel_zoom, box_select, reset"
 
@@ -75,6 +76,16 @@ def main(args):
     grid_plot = gridplot([[temp_range_plot], [mean_temp_plot], [
                          min_temp_plot], [max_temp_plot]])
     save(grid_plot)
+
+
+def main(args):
+    print("Running...")
+
+    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
+    weather_data = prepare_weather_dataframe(
+        weather_data_raw=pd.read_csv("daily-data-to-dec-2020.csv"))
+
+    make_bokeh_plots(weather_data, args)
 
 
 if __name__ == "__main__":
