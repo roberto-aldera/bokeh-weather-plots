@@ -53,7 +53,7 @@ def make_bokeh_plots(weather_data, args):
                             x_range=temp_range_plot.x_range)
     mean_temp_plot.toolbar.active_scroll = mean_temp_plot.select_one(
         WheelZoomTool)
-    mean_temp_plot.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[1],
+    mean_temp_plot.circle(x="datetime", y="Daily Tmean °C", source=source, color=palette[0],
                           size=5, alpha=0.8, legend_label="Mean temperature")
 
     min_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
@@ -61,7 +61,7 @@ def make_bokeh_plots(weather_data, args):
                            x_range=temp_range_plot.x_range)
     min_temp_plot.toolbar.active_scroll = min_temp_plot.select_one(
         WheelZoomTool)
-    min_temp_plot.circle(x="datetime", y="Tmin °C", source=source, color=palette[2],
+    min_temp_plot.circle(x="datetime", y="Tmin °C", source=source, color=palette[0],
                          size=5, alpha=0.8, legend_label="Min temperature")
 
     max_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
@@ -69,12 +69,28 @@ def make_bokeh_plots(weather_data, args):
                            x_range=temp_range_plot.x_range)
     max_temp_plot.toolbar.active_scroll = max_temp_plot.select_one(
         WheelZoomTool)
-    max_temp_plot.circle(x="datetime", y="Tmax °C", source=source, color=palette[3],
+    max_temp_plot.circle(x="datetime", y="Tmax °C", source=source, color=palette[0],
                          size=5, alpha=0.8, legend_label="Max temperature")
+
+    rainfall_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                           width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
+                           x_range=temp_range_plot.x_range)
+    rainfall_plot.toolbar.active_scroll = rainfall_plot.select_one(
+        WheelZoomTool)
+    rainfall_plot.circle(x="datetime", y="Rainfall mm raw incl traces", source=source, color=palette[0],
+                         size=5, alpha=0.8, legend_label="Rainfall (mm)")
+
+    sunlight_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
+                           width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
+                           x_range=temp_range_plot.x_range)
+    sunlight_plot.toolbar.active_scroll = sunlight_plot.select_one(
+        WheelZoomTool)
+    sunlight_plot.circle(x="datetime", y="Sunshine duration h", source=source, color=palette[0],
+                         size=5, alpha=0.8, legend_label="Sunshine duration")
 
     # make a grid and save to file
     grid_plot = gridplot([[temp_range_plot], [mean_temp_plot], [
-                         min_temp_plot], [max_temp_plot]])
+                         min_temp_plot], [max_temp_plot], [rainfall_plot], [sunlight_plot]])
     save(grid_plot)
 
 
