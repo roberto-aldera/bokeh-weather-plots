@@ -17,8 +17,6 @@ def get_historical_data(args, weather_data_raw: pd.DataFrame):
     selected_year = args.year
     # pdb.set_trace()
     for month in range(1, 13):
-
-        # for month in weather_data_raw[weather_data_raw["YYYY"] == selected_year]["MM"]:
         weather_data_subset = weather_data_raw[weather_data_raw["MM"]
                                                == month]
 
