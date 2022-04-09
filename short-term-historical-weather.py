@@ -1,45 +1,7 @@
 import pandas as pd
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
-import pdb
-
-
-def get_historical_data(args, weather_data_raw: pd.DataFrame):
-    # Find record temperatures
-    # Example: find hottest ever Nth of April, then record the temp and also the year in a new table.
-    days = []
-    months = []
-    years = []
-    tmax_years = []
-    tmax_vals = []
-    tmin_years = []
-    tmin_vals = []
-    selected_year = args.year
-    # pdb.set_trace()
-    for month in range(1, 13):
-        weather_data_subset = weather_data_raw[weather_data_raw["MM"]
-                                               == month]
-
-        for day in weather_data_subset[weather_data_subset["YYYY"] == selected_year]["DD"]:
-            idx_max_temp = weather_data_subset[weather_data_subset["DD"]
-                                               == day]["Tmax °C"].idxmax()
-            idx_min_temp = weather_data_subset[weather_data_subset["DD"]
-                                               == day]["Tmin °C"].idxmin()
-            days.append(day)
-            months.append(month)
-            years.append(selected_year)
-            tmax_years.append(weather_data_subset.loc[idx_max_temp]["YYYY"])
-            tmax_vals.append(weather_data_subset.loc[idx_max_temp]["Tmax °C"])
-            tmin_years.append(weather_data_subset.loc[idx_min_temp]["YYYY"])
-            tmin_vals.append(weather_data_subset.loc[idx_min_temp]["Tmin °C"])
-
-    historical_day_records = pd.DataFrame(
-        {"day": days, "month": months, "year": years, "Tmax-year": tmax_years, "Tmax-degC": tmax_vals,
-         "Tmin-year": tmin_years, "Tmin-degC": tmin_vals})
-    historical_day_records["datetime"] = pd.to_datetime(
-        historical_day_records[["day", "month", "year"]])
-
-    return historical_day_records
+from utilities import get_historical_data
 
 
 def prepare_weather_dataframe(args, weather_data_raw: pd.DataFrame):
@@ -55,7 +17,6 @@ def prepare_weather_dataframe(args, weather_data_raw: pd.DataFrame):
         columns={"YYYY": "year", "MM": "month", "DD": "day"})
     weather_data["datetime"] = pd.to_datetime(
         weather_data[["day", "month", "year"]])
-    # weather_data["datetime"] = weather_data["datetime"].dt.dayofyear # out of use for now
 
     weather_data["left"] = weather_data["datetime"] - pd.DateOffset(days=0.5)
     weather_data["right"] = weather_data["datetime"] + pd.DateOffset(days=0.5)
@@ -89,22 +50,8 @@ def make_plots(weather_data, historical_day_records, args):
     print("Plots generated and written to:", output_file)
 
 
-def main(args):
+def main(args=None):
     print("Running...")
-
-    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
-    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
-    # handle non-numeric instances like where data is missing
-    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
-
-    weather_data = prepare_weather_dataframe(args,
-                                             weather_data_raw)
-    historical_day_records = get_historical_data(args, weather_data_raw)
-
-    make_plots(weather_data, historical_day_records, args)
-
-
-if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--output_dir", type=str, default="",
                         help="Path to folder where outputs will be saved")
@@ -116,4 +63,18 @@ if __name__ == "__main__":
         raise ValueError(
             f"Invalid start year: {args.year} - this must be between 1815 and 2020.")
 
-    main(args)
+    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
+    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
+    # handle non-numeric instances like where data is missing
+    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
+
+    weather_data = prepare_weather_dataframe(args,
+                                             weather_data_raw)
+    historical_day_records = get_historical_data(
+        start_year=args.year, num_years=1, weather_data_raw=weather_data_raw)
+
+    make_plots(weather_data, historical_day_records, args)
+
+
+if __name__ == "__main__":
+    main()
