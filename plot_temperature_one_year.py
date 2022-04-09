@@ -1,6 +1,7 @@
 import argparse
 import pandas as pd
 from argparse import ArgumentParser
+from pathlib import Path
 import matplotlib.pyplot as plt
 from utilities import get_historical_data
 
@@ -25,8 +26,7 @@ def prepare_weather_dataframe(args: argparse.Namespace, weather_data_raw: pd.Dat
     return weather_data
 
 
-def make_plots(weather_data, historical_day_records):
-    output_file = "/tmp/weather-data.pdf"
+def make_plots(output_file, weather_data, historical_day_records):
     _, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 10))
     ax.plot(weather_data["datetime"], weather_data["Daily Tmean °C"], '*-',
             color="tab:blue", label="Mean temp")
@@ -51,21 +51,21 @@ def make_plots(weather_data, historical_day_records):
     print("Plots generated and written to:", output_file)
 
 
-def main(args=None):
+def main(args_list=None):
     print("Running...")
     parser = ArgumentParser(add_help=False)
-    parser.add_argument("--output_dir", type=str, default="",
+    parser.add_argument("--output_dir", type=Path, default="",
                         help="Path to folder where outputs will be saved")
     parser.add_argument("--year", type=int, default=2019,
                         help="Year for which to run analysis")
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
 
     if args.year < 1815 or args.year > 2020:
         raise ValueError(
             f"Invalid start year: {args.year} - this must be between 1815 and 2020.")
 
     # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
-    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
+    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv", dtype=str)
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
 
@@ -74,7 +74,9 @@ def main(args=None):
     historical_day_records = get_historical_data(
         start_year=args.year, num_years=1, weather_data_raw=weather_data_raw)
 
-    make_plots(weather_data, historical_day_records)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    make_plots(args.output_dir / "one_year_temperature.pdf",
+               weather_data, historical_day_records)
 
 
 if __name__ == "__main__":
