@@ -1,10 +1,11 @@
+import argparse
 import pandas as pd
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from utilities import get_historical_data
 
 
-def prepare_weather_dataframe(args, weather_data_raw: pd.DataFrame):
+def prepare_weather_dataframe(args: argparse.Namespace, weather_data_raw: pd.DataFrame):
     # Possible alteration: make this index relevant for current month (perhaps 15 days either side of today?)
     # Crop dataset to cover selected years
     weather_data_subset = weather_data_raw[(
@@ -24,7 +25,7 @@ def prepare_weather_dataframe(args, weather_data_raw: pd.DataFrame):
     return weather_data
 
 
-def make_plots(weather_data, historical_day_records, args):
+def make_plots(weather_data, historical_day_records):
     output_file = "/tmp/weather-data.pdf"
     _, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 10))
     ax.plot(weather_data["datetime"], weather_data["Daily Tmean °C"], '*-',
@@ -73,7 +74,7 @@ def main(args=None):
     historical_day_records = get_historical_data(
         start_year=args.year, num_years=1, weather_data_raw=weather_data_raw)
 
-    make_plots(weather_data, historical_day_records, args)
+    make_plots(weather_data, historical_day_records)
 
 
 if __name__ == "__main__":
