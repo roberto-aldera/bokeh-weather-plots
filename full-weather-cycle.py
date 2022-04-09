@@ -4,6 +4,7 @@ from bokeh.models import ColumnDataSource, WheelZoomTool
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category10_10 as palette
+from utilities import get_historical_data
 
 PLOT_WIDTH = 1200
 PLOT_HEIGHT = 300
@@ -11,9 +12,6 @@ BACKGROUND_COLOUR = "#fafafa"
 
 
 def prepare_weather_dataframe(weather_data_raw: pd.DataFrame) -> pd.DataFrame:
-    # handle non-numeric instances like where data is missing
-    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
-
     weather_data_subset = weather_data_raw[((weather_data_raw["YYYY"] >= args.start_year) & (
         weather_data_raw["YYYY"] <= args.start_year + (args.num_years-1)))]
 
@@ -31,12 +29,13 @@ def prepare_weather_dataframe(weather_data_raw: pd.DataFrame) -> pd.DataFrame:
     return weather_data
 
 
-def make_bokeh_plots(weather_data, args):
+def make_bokeh_plots(weather_data, historical_day_records, args):
     # set output to static HTML file
     output_file(filename=f"{args.output_dir}/weather_plots.html",
                 title="Weather data")
 
     source = ColumnDataSource(weather_data)
+    records_source = ColumnDataSource(historical_day_records)
     tools = "pan, wheel_zoom, box_select, reset"
 
     # create plots
@@ -45,6 +44,8 @@ def make_bokeh_plots(weather_data, args):
                              x_axis_type="datetime")
     temp_range_plot.toolbar.active_scroll = temp_range_plot.select_one(
         WheelZoomTool)
+    temp_range_plot.quad(top="Tmax-degC", bottom="Tmin-degC", left="left", right="right",
+                         source=records_source, color=palette[0], alpha=0.2, legend_label="Record temperature")
     temp_range_plot.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
                          source=source, color=palette[0], alpha=0.5, legend_label="Temperature range")
 
@@ -98,17 +99,23 @@ def main(args):
     print("Running...")
 
     # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
-    weather_data = prepare_weather_dataframe(
-        weather_data_raw=pd.read_csv("daily-data-to-dec-2020.csv"))
+    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
+    # handle non-numeric instances like where data is missing
+    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
 
-    make_bokeh_plots(weather_data, args)
+    weather_data = prepare_weather_dataframe(weather_data_raw)
+
+    historical_day_records = get_historical_data(
+        args.start_year, args.num_years, weather_data_raw)
+
+    make_bokeh_plots(weather_data, historical_day_records, args)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--output_dir", type=str, default="",
                         help="Path to folder where outputs will be saved")
-    parser.add_argument("--start_year", type=int, default=2019,
+    parser.add_argument("--start_year", type=int, default=2020,
                         help="Year from which to start analysis")
     parser.add_argument("--num_years", type=int, default=1,
                         help="Number of years to analyse")
