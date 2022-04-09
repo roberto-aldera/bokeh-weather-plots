@@ -1,3 +1,4 @@
+import argparse
 import pandas as pd
 from argparse import ArgumentParser
 from bokeh.models import ColumnDataSource, WheelZoomTool
@@ -11,7 +12,7 @@ PLOT_HEIGHT = 300
 BACKGROUND_COLOUR = "#fafafa"
 
 
-def prepare_weather_dataframe(weather_data_raw: pd.DataFrame) -> pd.DataFrame:
+def prepare_weather_dataframe(args: argparse.Namespace, weather_data_raw: pd.DataFrame) -> pd.DataFrame:
     weather_data_subset = weather_data_raw[((weather_data_raw["YYYY"] >= args.start_year) & (
         weather_data_raw["YYYY"] <= args.start_year + (args.num_years-1)))]
 
@@ -95,23 +96,8 @@ def make_bokeh_plots(weather_data, historical_day_records, args):
     save(grid_plot)
 
 
-def main(args):
+def main(args=None):
     print("Running...")
-
-    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
-    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
-    # handle non-numeric instances like where data is missing
-    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
-
-    weather_data = prepare_weather_dataframe(weather_data_raw)
-
-    historical_day_records = get_historical_data(
-        args.start_year, args.num_years, weather_data_raw)
-
-    make_bokeh_plots(weather_data, historical_day_records, args)
-
-
-if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--output_dir", type=str, default="",
                         help="Path to folder where outputs will be saved")
@@ -132,4 +118,18 @@ if __name__ == "__main__":
             "Truncating to the end of 2020.")
         args.num_years = 2020 - args.start_year + 1
 
-    main(args)
+    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
+    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
+    # handle non-numeric instances like where data is missing
+    weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
+
+    weather_data = prepare_weather_dataframe(args, weather_data_raw)
+
+    historical_day_records = get_historical_data(
+        args.start_year, args.num_years, weather_data_raw)
+
+    make_bokeh_plots(weather_data, historical_day_records, args)
+
+
+if __name__ == "__main__":
+    main()
