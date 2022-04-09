@@ -118,7 +118,6 @@ def main(args=None):
             "Truncating to the end of 2020.")
         args.num_years = 2020 - args.start_year + 1
 
-    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
     weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")

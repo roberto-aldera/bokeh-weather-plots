@@ -64,7 +64,6 @@ def main(args_list=None):
         raise ValueError(
             f"Invalid start year: {args.year} - this must be between 1815 and 2020.")
 
-    # Data from https://www.geog.ox.ac.uk/research/climate/rms/daily-data.html
     weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv", dtype=str)
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
