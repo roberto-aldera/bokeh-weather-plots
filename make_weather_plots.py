@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from pathlib import Path
 import pandas as pd
 from bokeh.models import ColumnDataSource, WheelZoomTool
 from bokeh.layouts import gridplot
@@ -11,10 +12,9 @@ PLOT_HEIGHT = 300
 BACKGROUND_COLOUR = "#fafafa"
 
 
-def make_bokeh_plots(weather_data, historical_day_records, args):
+def make_bokeh_plots(weather_data, historical_day_records, output_file_name):
     # set output to static HTML file
-    output_file(filename=f"{args.output_dir}/weather_plots.html",
-                title="Weather data")
+    output_file(filename=output_file_name, title="Weather data")
 
     source = ColumnDataSource(weather_data)
     records_source = ColumnDataSource(historical_day_records)
@@ -80,16 +80,16 @@ def make_bokeh_plots(weather_data, historical_day_records, args):
     save(grid_plot)
 
 
-def main(args=None):
+def main(args_list=None):
     print("Running...")
     parser = ArgumentParser(add_help=False)
-    parser.add_argument("--output_dir", type=str, default="",
+    parser.add_argument("--output_dir", type=Path, default="",
                         help="Path to folder where outputs will be saved")
     parser.add_argument("--start_year", type=int, default=2020,
                         help="Year from which to start analysis")
     parser.add_argument("--num_years", type=int, default=1,
                         help="Number of years to analyse")
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
 
     if args.start_year < 1815 or args.start_year > 2020:
         raise ValueError(
@@ -116,8 +116,9 @@ def main(args=None):
     historical_day_records = utilities.get_historical_data(
         args.start_year, args.num_years, weather_data_raw)
 
-    make_bokeh_plots(weather_data, historical_day_records, args)
+    make_bokeh_plots(weather_data, historical_day_records,
+                     args.output_dir/"weather_plots.html")
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover

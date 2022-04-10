@@ -62,4 +62,4 @@ def main(args_list=None):
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover
