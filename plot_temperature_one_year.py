@@ -1,29 +1,8 @@
-import argparse
-import pandas as pd
 from argparse import ArgumentParser
 from pathlib import Path
+import pandas as pd
 import matplotlib.pyplot as plt
-from utilities import get_historical_data
-
-
-def prepare_weather_dataframe(args: argparse.Namespace, weather_data_raw: pd.DataFrame):
-    # Possible alteration: make this index relevant for current month (perhaps 15 days either side of today?)
-    # Crop dataset to cover selected years
-    weather_data_subset = weather_data_raw[(
-        (weather_data_raw["YYYY"] == args.year))]
-
-    weather_data = weather_data_subset.reset_index(drop=True)
-
-    # Make a datetime column to use as x-index
-    weather_data = weather_data.rename(
-        columns={"YYYY": "year", "MM": "month", "DD": "day"})
-    weather_data["datetime"] = pd.to_datetime(
-        weather_data[["day", "month", "year"]])
-
-    weather_data["left"] = weather_data["datetime"] - pd.DateOffset(days=0.5)
-    weather_data["right"] = weather_data["datetime"] + pd.DateOffset(days=0.5)
-
-    return weather_data
+import utilities
 
 
 def make_plots(output_file, weather_data, historical_day_records):
@@ -68,9 +47,13 @@ def main(args_list=None):
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
 
-    weather_data = prepare_weather_dataframe(args,
-                                             weather_data_raw)
-    historical_day_records = get_historical_data(
+    # Crop dataset to cover selected year
+    weather_data_subset = weather_data_raw[(
+        (weather_data_raw["YYYY"] == args.year))]
+    weather_data = weather_data_subset.reset_index(drop=True)
+    weather_data = utilities.prepare_weather_dataframe(weather_data)
+
+    historical_day_records = utilities.get_historical_data(
         start_year=args.year, num_years=1, weather_data_raw=weather_data_raw)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)

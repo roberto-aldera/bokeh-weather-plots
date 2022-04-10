@@ -2,11 +2,30 @@ import pandas as pd
 import numpy as np
 
 
-def get_historical_data(start_year, num_years, weather_data_raw: pd.DataFrame) -> pd.DataFrame:
+def prepare_weather_dataframe(weather_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Amend a dataframe that contains content required for plotting (like the datetime field)
+    """
+    # Make a datetime column to use as x-index
+    weather_data = weather_data.rename(
+        columns={"YYYY": "year", "MM": "month", "DD": "day"})
+    weather_data["datetime"] = pd.to_datetime(
+        weather_data[["day", "month", "year"]])
+
+    weather_data["left"] = weather_data["datetime"] - \
+        pd.DateOffset(days=0.5)
+    weather_data["right"] = weather_data["datetime"] + \
+        pd.DateOffset(days=0.5)
+
+    return weather_data
+
+
+def get_historical_data(start_year: int, num_years: int,
+                        weather_data_raw: pd.DataFrame) -> pd.DataFrame:
     """
     Find record high and low temperatures for every day of the year and store in a dataframe.
     This is not optimised - to deal with leap years and keep the timeline playing nicely,
-    we recalculate these for every year that's in the query, effectively duplicating the 
+    we recalculate these for every year that's in the query, effectively duplicating the
     records for each year (instead of being efficient and doing it once - big TODO here.)
     """
     days = []
@@ -41,8 +60,8 @@ def get_historical_data(start_year, num_years, weather_data_raw: pd.DataFrame) -
                     weather_data_subset.loc[idx_min_temp]["Tmin °C"])
 
     historical_day_records = pd.DataFrame(
-        {"day": days, "month": months, "year": years, "Tmax-year": tmax_years, "Tmax-degC": tmax_vals,
-         "Tmin-year": tmin_years, "Tmin-degC": tmin_vals})
+        {"day": days, "month": months, "year": years, "Tmax-year": tmax_years,
+         "Tmax-degC": tmax_vals, "Tmin-year": tmin_years, "Tmin-degC": tmin_vals})
     historical_day_records["datetime"] = pd.to_datetime(
         historical_day_records[["day", "month", "year"]])
     historical_day_records["left"] = historical_day_records["datetime"] - \

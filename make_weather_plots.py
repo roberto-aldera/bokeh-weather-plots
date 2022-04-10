@@ -1,33 +1,14 @@
-import argparse
-import pandas as pd
 from argparse import ArgumentParser
+import pandas as pd
 from bokeh.models import ColumnDataSource, WheelZoomTool
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure, output_file, save
 from bokeh.palettes import Category10_10 as palette
-from utilities import get_historical_data
+import utilities
 
 PLOT_WIDTH = 1200
 PLOT_HEIGHT = 300
 BACKGROUND_COLOUR = "#fafafa"
-
-
-def prepare_weather_dataframe(args: argparse.Namespace, weather_data_raw: pd.DataFrame) -> pd.DataFrame:
-    weather_data_subset = weather_data_raw[((weather_data_raw["YYYY"] >= args.start_year) & (
-        weather_data_raw["YYYY"] <= args.start_year + (args.num_years-1)))]
-
-    weather_data = weather_data_subset.reset_index(drop=True)
-
-    # Make a datetime column to use as x-index
-    weather_data = weather_data.rename(
-        columns={"YYYY": "year", "MM": "month", "DD": "day"})
-    weather_data["datetime"] = pd.to_datetime(
-        weather_data[["day", "month", "year"]])
-
-    weather_data["left"] = weather_data["datetime"] - pd.DateOffset(days=0.5)
-    weather_data["right"] = weather_data["datetime"] + pd.DateOffset(days=0.5)
-
-    return weather_data
 
 
 def make_bokeh_plots(weather_data, historical_day_records, args):
@@ -46,9 +27,11 @@ def make_bokeh_plots(weather_data, historical_day_records, args):
     temp_range_plot.toolbar.active_scroll = temp_range_plot.select_one(
         WheelZoomTool)
     temp_range_plot.quad(top="Tmax-degC", bottom="Tmin-degC", left="left", right="right",
-                         source=records_source, color=palette[0], alpha=0.2, legend_label="Record temperature")
+                         source=records_source, color=palette[0], alpha=0.2,
+                         legend_label="Record temperature")
     temp_range_plot.quad(top="Tmax °C", bottom="Tmin °C", left="left", right="right",
-                         source=source, color=palette[0], alpha=0.5, legend_label="Temperature range")
+                         source=source, color=palette[0], alpha=0.5,
+                         legend_label="Temperature range")
 
     mean_temp_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
                             width=PLOT_WIDTH, height=PLOT_HEIGHT, x_axis_type="datetime",
@@ -79,7 +62,8 @@ def make_bokeh_plots(weather_data, historical_day_records, args):
                            x_range=temp_range_plot.x_range)
     rainfall_plot.toolbar.active_scroll = rainfall_plot.select_one(
         WheelZoomTool)
-    rainfall_plot.circle(x="datetime", y="Rainfall mm raw incl traces", source=source, color=palette[0],
+    rainfall_plot.circle(x="datetime", y="Rainfall mm raw incl traces",
+                         source=source, color=palette[0],
                          size=5, alpha=0.8, legend_label="Rainfall (mm)")
 
     sunlight_plot = figure(background_fill_color=BACKGROUND_COLOUR, tools=tools,
@@ -114,17 +98,22 @@ def main(args=None):
     if args.start_year + (args.num_years-1) > 2020:
         print(
             f"The requested start year ({args.start_year}) plus the entered "
-            f"number of years ({args.num_years}) exceeds the latest available data from the end of 2020. "
-            "Truncating to the end of 2020.")
+            f"number of years ({args.num_years}) exceeds the latest available "
+            "data from the end of 2020. Truncating to the end of 2020.")
         args.num_years = 2020 - args.start_year + 1
 
-    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv")
+    weather_data_raw = pd.read_csv("daily-data-to-dec-2020.csv", dtype=str)
     # handle non-numeric instances like where data is missing
     weather_data_raw = weather_data_raw.apply(pd.to_numeric, errors="coerce")
 
-    weather_data = prepare_weather_dataframe(args, weather_data_raw)
+    # Crop dataset to cover selected years
+    weather_data_subset = weather_data_raw[((weather_data_raw["YYYY"] >= args.start_year) & (
+        weather_data_raw["YYYY"] <= args.start_year + (args.num_years-1)))]
+    weather_data = weather_data_subset.reset_index(drop=True)
 
-    historical_day_records = get_historical_data(
+    weather_data = utilities.prepare_weather_dataframe(weather_data)
+
+    historical_day_records = utilities.get_historical_data(
         args.start_year, args.num_years, weather_data_raw)
 
     make_bokeh_plots(weather_data, historical_day_records, args)
