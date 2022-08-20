@@ -36,6 +36,10 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run pytest
       run: |
-        pytest --cov app
+        pytest
+    - name: Generate Report
+      run: |
+        pip install coverage
+        coverage run -m unittest
     - name: Codecov
       uses: codecov/codecov-action@v3.1.0
